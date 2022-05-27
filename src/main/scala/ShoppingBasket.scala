@@ -7,19 +7,20 @@ object ShoppingBasket {
   def main(args: Array[String]): Unit = {
     var input = ""
 
-    while (!input.equalsIgnoreCase("exit")) {
+    while (true) {
         print("Please place your shopping basket: ")
         input = readLine()
         var words = input.split(' ')
         val cmd = words(0)
         words = words.drop(1)
 
-        cmd match {
-          case "PriceBasket" => priceBasket(words)
-          case "addProduct" => Products.addProduct(words(0), words(1).toInt)
-          case "removeProduct" => Products.removeProduct(words.head)
-          case "addOffer" => Offers.addOffer(words(0), words(1), words(2).toInt, words(3).toDouble)
-          case "removeOffer" => Offers.removeOffer(words.head)
+        cmd.toLowerCase match {
+          case "pricebasket" => priceBasket(words)
+          case "addproduct" => Products.addProduct(words(0), words(1).toInt)
+          case "removeproduct" => Products.removeProduct(words.head)
+          case "addoffer" => Offers.addOffer(words(0), words(1), words(2).toInt, words(3).toDouble)
+          case "removeoffer" => Offers.removeOffer(words.head)
+          case "exit" => return
           case badInput => println("not a valid command: " + badInput)
         }
       }
