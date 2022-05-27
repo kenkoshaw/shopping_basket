@@ -1,10 +1,11 @@
 import Offers.offers
-import scala.collection.mutable.Map
+import Products.products
 
+import scala.collection.mutable.Map
 import scala.io.StdIn.readLine
 import scala.io.Source
 
-object Main {
+object ShoppingBasket {
   def main(args: Array[String]): Unit = {
     var input = ""
 
@@ -19,7 +20,7 @@ object Main {
           case "PriceBasket" => priceBasket(words)
           case "addProduct" => Products.addProduct(words(0), words(1).toInt)
           case "removeProduct" => Products.removeProduct(words.head)
-//          case "addOffer" => Offers.addOffer(words(0), words(1).toInt, words(2).toDouble)
+          case "addOffer" => Offers.addOffer(words(0), words(1), words(2).toInt, words(3).toDouble)
           case "removeOffer" => Offers.removeOffer(words.head)
           case badInput => println("not a valid command: " + badInput)
         }
@@ -29,50 +30,58 @@ object Main {
   def priceBasket(basket:Array[String]) {
     val countBasket: Map[String, Int] = Map.apply()
     for (item <- basket) {
+      if (!products.contains(item)) {
+        println("sorry we don't have '" + item + "' in stock...")
+        return
+      }
       if (countBasket.contains(item)) {countBasket(item) += 1} else {countBasket(item) = 1}
     }
 
-    val subTotals = calculateSubTotal(countBasket)
-    val subTotalBasket = subTotals._1
-    val subTotalAmt = subTotals._2
-
-    val totalDiscount = calculateOffers(subTotalBasket)
+    val subTotalAmt = calculateSubTotal(countBasket)
+    println("Subtotal: " + intToGBP(subTotalAmt))
+    val totalDiscount = calculateOffers(countBasket)
     val totalAmt = subTotalAmt - totalDiscount
     println("Total price: " + intToGBP(totalAmt))
   }
 
-  def calculateSubTotal(basket: Map[String, Int]): (Map[String, (Int,Int)], Int) ={
-    val subTotalBasket: Map[String, (Int,Int)] = Map.apply()
+  def calculateSubTotal(basket: Map[String, Int]): Int ={
     var subTotalAmt = 0
     for (item <- basket) {
       val product = item._1
       val prodCnt = item._2
-      val prodPrice = Products.products(product)
+      val prodPrice = products(product)
       val accProdPrice = prodPrice * prodCnt
       subTotalAmt += accProdPrice
-      subTotalBasket(product) = (prodCnt,accProdPrice)
     }
-    println("Subtotal: " + intToGBP(subTotalAmt))
-    (subTotalBasket,subTotalAmt)
+    subTotalAmt
   }
 
-  def calculateOffers(basket: Map[String, (Int,Int)]): Int ={
+  def calculateOffers(basket: Map[String, Int]): Int ={
     var totalDiscount = 0
     for (item <- basket) {
       val product = item._1
-      val prodCnt = item._2._1
-      val accProdPrice = item._2._2
+      val prodCnt = item._2
 
       if (offers.contains(product)){
         val offer = offers(product)
         val coProduct = offer._1
         val coProdCnt = offer._2
-        val percent = (offer._3 * 100).toInt
 
-        if (coProduct.isBlank) {
-          val discountedAmt = accProdPrice * offer._3
-          totalDiscount += discountedAmt.toInt
-          println(product + " " + percent + "% off: " + intToGBP(discountedAmt.toInt))
+        var coProdInBasketCnt =  if (basket.contains(coProduct)) basket(coProduct) else 0
+        var maxDiscItemCnt = if (coProdCnt != 0) coProdInBasketCnt/coProdCnt else prodCnt
+
+        val discItemCnt = prodCnt.min(maxDiscItemCnt)
+        val discountedAmt = discItemCnt * products(product) * offer._3
+        totalDiscount += discountedAmt.toInt
+
+        if (discountedAmt.toInt != 0){
+          val percent = (offer._3 * 100).toInt
+          if (coProdCnt != 0) {
+            println("Buy " + coProdCnt + " " + coProduct + " get " + percent + "% off 1 " + product + ": "  + intToGBP(discountedAmt.toInt))
+          }
+          else {
+            println(product + " " + percent + "% off: " + intToGBP(discountedAmt.toInt))
+          }
         }
       }
     }
