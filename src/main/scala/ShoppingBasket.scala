@@ -1,9 +1,7 @@
 import Offers.offers
 import Products.products
-
 import scala.collection.mutable.Map
 import scala.io.StdIn.readLine
-import scala.io.Source
 
 object ShoppingBasket {
   def main(args: Array[String]): Unit = {
@@ -58,6 +56,7 @@ object ShoppingBasket {
 
   def calculateOffers(basket: Map[String, Int]): Int ={
     var totalDiscount = 0
+    var noOffers = true
     for (item <- basket) {
       val product = item._1
       val prodCnt = item._2
@@ -67,14 +66,15 @@ object ShoppingBasket {
         val coProduct = offer._1
         val coProdCnt = offer._2
 
-        var coProdInBasketCnt =  if (basket.contains(coProduct)) basket(coProduct) else 0
-        var maxDiscItemCnt = if (coProdCnt != 0) coProdInBasketCnt/coProdCnt else prodCnt
+        val coProdInBasketCnt =  if (basket.contains(coProduct)) basket(coProduct) else 0
+        val maxDiscItemCnt = if (coProdCnt != 0) coProdInBasketCnt/coProdCnt else prodCnt
 
         val discItemCnt = prodCnt.min(maxDiscItemCnt)
         val discountedAmt = discItemCnt * products(product) * offer._3
         totalDiscount += discountedAmt.toInt
 
         if (discountedAmt.toInt != 0){
+          noOffers = false
           val percent = (offer._3 * 100).toInt
           if (coProdCnt != 0) {
             println("Buy " + coProdCnt + " " + coProduct + " get " + percent + "% off 1 " + product + ": "  + intToGBP(discountedAmt.toInt))
@@ -82,6 +82,9 @@ object ShoppingBasket {
           else {
             println(product + " " + percent + "% off: " + intToGBP(discountedAmt.toInt))
           }
+        }
+        if (noOffers) {
+          println("(No offers available)")
         }
       }
     }
