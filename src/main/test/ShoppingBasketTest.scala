@@ -2,6 +2,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.collection.mutable.Map
 
 class ShoppingBasketTest extends AnyFunSuite {
+
   test("ShoppingBasket.calculateSubTotal") {
     val basket: Map[String, Int] = Map.apply("Soup" -> 2, "Bread" -> 1, "Milk" -> 1, "Apples" -> 1)
     assert(ShoppingBasket.calculateSubTotal(basket) == 440)
